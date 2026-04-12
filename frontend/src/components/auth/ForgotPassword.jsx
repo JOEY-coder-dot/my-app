@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "../../style/Auth.css";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../../supabaseClient";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
