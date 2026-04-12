@@ -34,14 +34,14 @@ export default function Register() {
     }
 
     try {
-      const res = await register(formData.username, formData.password);
-      if (res.status === 200) {
+      const res = await register(formData.email, formData.password, formData.username);
+      if (res.user) {
         alert("Registration successful!");
         navigate("/login");
       }
     } catch (err) {
       console.error("Error registering:", err);
-      alert(err.response?.data?.message || "Registration failed");
+      alert(err.message || "Registration failed");
     }
   };
 
