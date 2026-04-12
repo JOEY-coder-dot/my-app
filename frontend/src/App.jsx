@@ -20,6 +20,17 @@ function PrivateRoute({ children }) {
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        // Navigate user to reset-password page
+        navigate("/reset-password");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+  
   return (
     <Routes>
       {/* Public routes */}
