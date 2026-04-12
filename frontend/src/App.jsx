@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
@@ -20,19 +20,6 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();   // ✅ define navigate
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "PASSWORD_RECOVERY") {
-          navigate("/reset-password");
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   return (
     <Routes>
