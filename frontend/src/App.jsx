@@ -1,22 +1,37 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/items`)
       .then(res => res.json())
-      .then(data => setItems(data));
+      .then(data => {
+        setItems(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching items:", err);
+        setLoading(false);
+      });
   }, []);
 
   return (
-    <div>
-      <h1>Supabase Items</h1>
-      <ul>
-        {items.map(item => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
+    <div className="app">
+      <h1>Inventory</h1>
+      {loading ? (
+        <p>Loading items...</p>
+      ) : (
+        <ul>
+          {items.map(item => (
+            <li key={item.id}>
+              {item.name} — {item.quantity}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
