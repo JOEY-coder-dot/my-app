@@ -1,12 +1,12 @@
 import { supabase } from "../supabaseClient";
 
-// Register a new user (email + password + optional username in metadata)
+// Register a new user
 export const register = async (email, password, username) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { username } // stored in user_metadata
+      data: { username }
     }
   });
   if (error) throw error;

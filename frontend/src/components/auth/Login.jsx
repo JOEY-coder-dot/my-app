@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../style/Auth.css";
-import { login, saveToken } from "../../utils/auth";
+import { login } from "../../utils/auth";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -34,11 +34,12 @@ export default function Login() {
 
     try {
       const res = await login(formData.email, formData.password);
-      saveToken(res.data.token);
-      navigate("/home");
+      if (res.user) {
+        navigate("/home");
+      }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Login failed");
+      alert(err.message || "Login failed");
     }
   };
 
