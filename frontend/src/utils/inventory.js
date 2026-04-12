@@ -3,8 +3,11 @@ import { supabase } from "../supabaseClient";
 // Get all inventory rows
 export const getAll = async () => {
   const { data, error } = await supabase.from("inventory").select("*");
-  if (error) throw error;
-  return data; // returns array of items
+  if (error) {
+    console.error("getAll error:", error);
+    return { data: [] }; // always return an array
+  }
+  return { data: data || [] };
 };
 
 // Get a single row by CS number
@@ -14,15 +17,21 @@ export const getById = async (cs) => {
     .select("*")
     .eq("cs", cs)
     .single();
-  if (error) throw error;
-  return data; // returns one item object
+  if (error) {
+    console.error("getById error:", error);
+    return { data: null };
+  }
+  return { data: data || null };
 };
 
 // Create a new inventory row
 export const create = async (row) => {
   const { data, error } = await supabase.from("inventory").insert([row]);
-  if (error) throw error;
-  return data; // returns inserted row(s)
+  if (error) {
+    console.error("create error:", error);
+    return { data: [] };
+  }
+  return { data: data || [] };
 };
 
 // Update an inventory row by CS number
@@ -31,8 +40,11 @@ export const update = async (cs, row) => {
     .from("inventory")
     .update(row)
     .eq("cs", cs);
-  if (error) throw error;
-  return data; // returns updated row(s)
+  if (error) {
+    console.error("update error:", error);
+    return { data: [] };
+  }
+  return { data: data || [] };
 };
 
 // Delete an inventory row by CS number
@@ -41,6 +53,9 @@ export const remove = async (cs) => {
     .from("inventory")
     .delete()
     .eq("cs", cs);
-  if (error) throw error;
-  return data; // returns deleted row(s)
+  if (error) {
+    console.error("remove error:", error);
+    return { data: [] };
+  }
+  return { data: data || [] };
 };

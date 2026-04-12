@@ -6,13 +6,19 @@ import { getAll, getById, update, remove } from "../utils/inventory";
 import EditDialog from "./EditDialog";
 
 export default function InventoryTable({ onViewDetails }) {
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState([]);       // always an array
   const [search, setSearch] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState(null);
 
   const fetchData = () => {
-    getAll().then((res) => setRows(res.data));
+    getAll().then((res) => {
+      // fallback to empty array if res.data is undefined
+      setRows(res?.data || []);
+    }).catch((err) => {
+      console.error("Fetch failed:", err);
+      setRows([]); // keep rows safe
+    });
   };
 
   useEffect(() => {
@@ -51,9 +57,13 @@ export default function InventoryTable({ onViewDetails }) {
             size="small"
             color="warning"
             onClick={async () => {
-              const res = await getById(params.row.cs); // fetch full record
-              setEditRow(res.data);
-              setEditOpen(true);
+              try {
+                const res = await getById(params.row.cs);
+                setEditRow(res?.data || null);
+                setEditOpen(true);
+              } catch (err) {
+                console.error("Fetch by ID failed:", err);
+              }
             }}
           >
             Update
@@ -83,9 +93,12 @@ export default function InventoryTable({ onViewDetails }) {
     },
   ];
 
-  const filteredRows = rows.filter((row) =>
-    Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase())
-  );
+  // Guard against undefined rows
+  const filteredRows = Array.isArray(rows)
+    ? rows.filter((row) =>
+        Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   return (
     <Paper sx={{ height: 555, width: "100%", p: 2 }}>
