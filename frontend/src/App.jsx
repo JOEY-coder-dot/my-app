@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
@@ -30,7 +30,7 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-  
+
   return (
     <Routes>
       {/* Public routes */}
