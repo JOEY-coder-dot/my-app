@@ -1,50 +1,76 @@
 import { supabase } from "../supabaseClient";
 
 // Get all inventory rows
-export const getAll = async () => {
-  const { data, error } = await supabase.from("inventory").select("*");
-  if (error) {
-    console.error("getAll error:", error);
-    return { data: [] }; // always return an array
-  }
-  return { data: data || [] };
-};
-
-// Get a single row by CS number
-export const getById = async (cs) => {
+// Return all units that are NOT released
+export async function getAll() {
   const { data, error } = await supabase
     .from("inventory")
-    .select("*")
+    .select(`
+      *,
+      customers ( customername, vsp )
+    `)
+    .or("status.is.null,status.eq.,status.neq.Released"); 
+    // ✅ include NULL, blank, and anything not Released
+
+  if (error) throw error;
+
+  return data.map((item) => ({
+    ...item,
+    customer_name:
+      item.status === "Hold" || item.status === "Allocated"
+        ? item.customers?.customername || "—"
+        : "",
+  }));
+}
+
+export async function getById(cs) {
+  const { data, error } = await supabase
+    .from("inventory")
+    .select(`
+      cs,
+      model,
+      color,
+      year,
+      location,
+      chassisnum,
+      enginenum,
+      keynum,
+      weight,
+      status,
+      date,
+      posteddate,
+      date_tagged,
+      vsp,
+      customers ( customername )
+    `)
     .eq("cs", cs)
     .single();
-  if (error) {
-    console.error("getById error:", error);
-    return { data: null };
-  }
-  return { data: data || null };
-};
+  if (error) throw error;
+  // ✅ Flatten customername so EditDialog can bind directly
+  return {
+    ...data,
+    customername: data.customers?.customername || "",
+  };
+}
 
 // Create a new inventory row
 export const create = async (row) => {
   const { data, error } = await supabase.from("inventory").insert([row]);
-  if (error) {
-    console.error("create error:", error);
-    return { data: [] };
-  }
-  return { data: data || [] };
+  if (error) throw error;
+  return data; // returns inserted row(s)
 };
 
 // Update an inventory row by CS number
 export const update = async (cs, row) => {
   const { data, error } = await supabase
     .from("inventory")
-    .update(row)
+    .update({
+      ...row,
+      vsp: row.vsp, // ✅ make sure vsp is included
+    })
     .eq("cs", cs);
-  if (error) {
-    console.error("update error:", error);
-    return { data: [] };
-  }
-  return { data: data || [] };
+  if (error) throw error;
+  return data; // returns updated row(s)
 };
 
 // Delete an inventory row by CS number
@@ -53,9 +79,6 @@ export const remove = async (cs) => {
     .from("inventory")
     .delete()
     .eq("cs", cs);
-  if (error) {
-    console.error("remove error:", error);
-    return { data: [] };
-  }
-  return { data: data || [] };
+  if (error) throw error;
+  return data; // returns deleted row(s)
 };

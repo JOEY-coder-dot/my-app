@@ -6,7 +6,12 @@ export default function InventoryDetailsPanel({ inventoryItem, onBack }) {
   const [details, setDetails] = useState(null);
 
   useEffect(() => {
-    getById(inventoryItem.cs).then((res) => setDetails(res.data));
+    getById(inventoryItem.cs)
+      .then((res) => setDetails(res)) // ✅ res is the row object, not { data }
+      .catch((err) => {
+        console.error("Failed to fetch details:", err);
+        setDetails(null);
+      });
   }, [inventoryItem.cs]);
 
   if (!details) return <p>Loading...</p>;
