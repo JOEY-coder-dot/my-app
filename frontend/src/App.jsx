@@ -12,7 +12,7 @@ import Releases from "./pages/Releases";
 import Customer from "./pages/Customers";
 import Report from "./pages/Report";
 import Settings from "./pages/Settings";
-import Admin from "./pages/admin";
+import Admin from "./pages/Admin";
 import { Box, CircularProgress } from "@mui/material";
 
 function PrivateRoute({ children, session }) {
