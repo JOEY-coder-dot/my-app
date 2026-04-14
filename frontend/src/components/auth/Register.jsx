@@ -8,7 +8,8 @@ export default function Register() {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    password: ""
+    password: "",
+    position: "" // ✅ new field
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -34,14 +35,29 @@ export default function Register() {
     }
 
     try {
-      const res = await register(formData.email, formData.password, formData.username);
-      if (res.user) {
+      const { user } = await register(
+        formData.email,
+        formData.password,
+        formData.username,
+        formData.position
+      );
+
+      if (user) {
         alert("Registration successful!");
         navigate("/login");
+      } else {
+        // ⚠️ Email confirmation enabled
+        alert("Check your email to confirm registration before logging in.");
       }
     } catch (err) {
       console.error("Error registering:", err);
-      alert(err.message || "Registration failed");
+
+      // Handle duplicate username gracefully
+      if (err.message?.includes("duplicate key value")) {
+        alert("That username is already taken. Please choose another.");
+      } else {
+        alert(err.message || "Registration failed");
+      }
     }
   };
 
@@ -85,6 +101,19 @@ export default function Register() {
           />
           {touched.password && errors.password && (
             <p className="auth-error">{errors.password}</p>
+          )}
+        </div>
+
+        <div className="auth-field">
+          <input
+            type="text"
+            name="position"
+            placeholder="Position"
+            value={formData.position}
+            onChange={handleChange}
+          />
+          {touched.position && errors.position && (
+            <p className="auth-error">{errors.position}</p>
           )}
         </div>
 
