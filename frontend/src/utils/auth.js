@@ -1,29 +1,14 @@
 import { supabase } from "../supabaseClient";
 
-// Register a new user and insert into profiles table
-export const register = async (email, password, username, position = null) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { username, position }, // still stored in user_metadata
-    },
+/**
+ * Finalize invite by letting user set their password.
+ * Must be called after exchangeCodeForSession().
+ */
+export const finalizeInvitePassword = async (newPassword) => {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
   });
-
-  if (error) throw error;
-
-  const user = data.user;
-
-  // If email confirmation is enabled, user may be null until confirmed
-  if (user) {
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert([{ id: user.id, username, position }]);
-
-    if (profileError) throw profileError;
-  }
-
-  return { user: data.user, session: data.session };
+  return { user: data?.user, error };
 };
 
 // Login with email + password

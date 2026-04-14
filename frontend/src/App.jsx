@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
-
+import Layout from "./components/Layout";
 import Login from "./components/auth/Login";
-import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import ResetPassword from "./components/auth/ResetPassword";
-import Layout from "./components/Layout";
+import SetPassword from "./components/auth/SetPassword";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
 import Releases from "./pages/Releases";
 import Customer from "./pages/Customers";
 import Report from "./pages/Report";
 import Settings from "./pages/Settings";
+import Admin from "./pages/admin";
+import { Box, CircularProgress } from "@mui/material";
 
 function PrivateRoute({ children, session }) {
   return session ? children : <Navigate to="/login" replace />;
@@ -20,41 +21,62 @@ function PrivateRoute({ children, session }) {
 
 export default function App() {
   const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    // ✅ Hydrate session on first load
+    const syncRole = async (session) => {
+      if (!session?.user) return;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (!error && data?.role) {
+        session.user.user_metadata = {
+          ...session.user.user_metadata,
+          role: data.role,
+        };
+        setSession(session);
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      syncRole(session);
+      setLoading(false);
     });
 
-    // ✅ Listen for login/logout/password recovery events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
+        syncRole(session);
       }
     );
 
-    // ✅ Cleanup listener correctly
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
     <Routes>
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/set-password" element={<SetPassword />} />
 
       {/* Protected routes */}
       <Route
         path="/"
         element={
           <PrivateRoute session={session}>
-            <Layout collapsed={collapsed} setCollapsed={setCollapsed} />
+            <Layout collapsed={collapsed} setCollapsed={setCollapsed} session={session}>
+              {loading ? (
+                <Box sx={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }}>
+                  <CircularProgress />
+                </Box>
+              ) : null}
+            </Layout>
           </PrivateRoute>
         }
       >
@@ -65,6 +87,18 @@ export default function App() {
         <Route path="customer" element={<Customer />} />
         <Route path="report" element={<Report />} />
         <Route path="settings" element={<Settings />} />
+        <Route
+          path="admin"
+          element={
+            <PrivateRoute session={session}>
+              {session?.user?.user_metadata?.role === "admin" ? (
+                <Admin />
+              ) : (
+                <Navigate to="/home" replace />
+              )}
+            </PrivateRoute>
+          }
+        />
       </Route>
     </Routes>
   );

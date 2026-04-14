@@ -1,93 +1,75 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 import {
   AppBar,
   Toolbar,
   Typography,
   IconButton,
+  Box,
   Avatar,
-  Badge,
   Menu,
   MenuItem,
   Divider,
-  Box,
-  Tooltip,
 } from "@mui/material";
-import {
-  NotificationsOutlined,
-  AccountCircleOutlined,
-  Settings,
-  Logout,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import MenuIcon from "@mui/icons-material/Menu";
 
-export default function Navbar() {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [notifEl, setNotifEl] = useState(null);
+export default function Navbar({ session, collapsed, setCollapsed }) {
   const [username, setUsername] = useState("");
-  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
+    if (!session) return;
     const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error("Failed to fetch user:", error);
-        return;
-      }
-      if (data?.user) {
-        // Supabase user object has email and optional metadata
-        setUsername(data.user.email || "User");
-      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (!error && data) setUsername(data.username);
     };
     fetchUser();
-  }, []);
+  }, [session]);
 
-  const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
-  const handleNotifClick = (e) => setNotifEl(e.currentTarget);
+  const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleNotifClose = () => setNotifEl(null);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    handleClose();
-    navigate("/login");
-  };
 
   return (
-    <AppBar position="static" color="default" sx={{ height: 60 }}>
+    <AppBar position="static" color="primary" elevation={2}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6" component="div" sx={{ cursor: "pointer" }}>
-          TOYOTA
-        </Typography>
-
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton onClick={handleNotifClick} color="inherit">
-            <Badge color="error" variant="dot">
-              <NotificationsOutlined />
-            </Badge>
+        {/* Left side */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <IconButton color="inherit" onClick={() => setCollapsed(!collapsed)}>
+            <MenuIcon />
           </IconButton>
-          <Menu open={Boolean(notifEl)} anchorEl={notifEl} onClose={handleNotifClose}>
-            <MenuItem>Notification 1</MenuItem>
-            <Divider />
-            <MenuItem>Notification 2</MenuItem>
-          </Menu>
+          <Typography variant="h6" fontWeight="bold">
+            My Dashboard
+          </Typography>
+        </Box>
 
-          <Tooltip title="Account settings">
-            <IconButton onClick={handleAvatarClick} sx={{ ml: 2 }}>
-              <Avatar>{username.charAt(0).toUpperCase()}</Avatar>
-            </IconButton>
-          </Tooltip>
-          <Typography sx={{ ml: 1 }}>{username}</Typography>
-          <Menu open={Boolean(anchorEl)} anchorEl={anchorEl} onClose={handleClose}>
-            <MenuItem>
-              <AccountCircleOutlined sx={{ mr: 1 }} /> Profile
-            </MenuItem>
+        {/* Right side */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <IconButton color="inherit">
+            <NotificationsIcon />
+          </IconButton>
+          <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
+            <Avatar sx={{ bgcolor: "secondary.main" }}>
+              {username ? username.charAt(0).toUpperCase() : "?"}
+            </Avatar>
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+            <Typography sx={{ px: 2, py: 1 }} variant="subtitle1">
+              {username ? `Hello, ${username}` : "Loading..."}
+            </Typography>
             <Divider />
-            <MenuItem>
-              <Settings sx={{ mr: 1 }} /> Settings
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <Logout sx={{ mr: 1 }} /> Logout
+            <MenuItem onClick={handleClose}>Profile</MenuItem>
+            <MenuItem
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/login";
+              }}
+            >
+              Logout
             </MenuItem>
           </Menu>
         </Box>

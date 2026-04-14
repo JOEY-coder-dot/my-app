@@ -1,142 +1,195 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import { Paper, TextField, Button } from "@mui/material";
+import {
+  Box, Paper, Typography, TextField,
+  IconButton, Menu, MenuItem, Chip
+} from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import {
+  DataGrid,
+  GridToolbar
+} from "@mui/x-data-grid";
+
 import { generateInvoice } from "../utils/generateInvoice";
-import { getAll, getById, update, remove } from "../utils/inventory";
+import { getAll, getById, remove } from "../utils/inventory";
 import EditDialog from "./EditDialog";
 
 export default function InventoryTable({ onViewDetails }) {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
+
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState(null);
 
-    const fetchData = () => {
-    getAll()
-      .then((res) => {
-        // ✅ No need to remap here, getAll already flattened customer_name
-        setRows(res);
-      })
-      .catch((err) => {
-        console.error("Fetch failed:", err);
-        setRows([]);
-      });
-    };
+  const fetchData = async () => {
+    try {
+      const res = await getAll();
+      setRows(res);
+    } catch {
+      setRows([]);
+    }
+  };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const columns = [
-    { field: "date", headerName: "Invoice Date", width: 150 },
-    { field: "posteddate", headerName: "Posted Date", width: 150 },
-    { field: "cs", headerName: "CS Number", width: 150 },
-    { field: "vsp", headerName: "VSP", width: 150 },
-    { field: "customer_name", headerName: "Customer Name", width: 200 },
-    { field: "model", headerName: "Unit Model", width: 200 },
-    { field: "color", headerName: "Color", width: 150 },
-    { field: "year", headerName: "Year Model", width: 150 },
-    { field: "status", headerName: "Status", width: 150 },
-    { field: "location", headerName: "Location", width: 200 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 360,
-      renderCell: (params) => (
-        <>
-          <Button
-            size="small"
-            color="primary"
-            onClick={() => onViewDetails(params.row)}
-          >
-            View Details
-          </Button>
-          <Button
-            size="small"
-            color="success"
-            onClick={() => generateInvoice(params.row)}
-          >
+  // 🔍 SEARCH
+  const filteredRows = rows.filter((row) =>
+    Object.values(row).some((val) =>
+      String(val).toLowerCase().includes(search.toLowerCase())
+    )
+  );
+
+  // 🔥 ACTION MENU COMPONENT
+  const ActionMenu = ({ row }) => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
+    return (
+      <>
+        <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+          <MoreVertIcon />
+        </IconButton>
+
+        <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
+          <MenuItem onClick={() => { onViewDetails(row); setAnchorEl(null); }}>
+            View
+          </MenuItem>
+
+          <MenuItem onClick={() => { generateInvoice(row); setAnchorEl(null); }}>
             Invoice
-          </Button>
-          <Button
-            size="small"
-            color="warning"
+          </MenuItem>
+
+          <MenuItem
             onClick={async () => {
-              try {
-                const res = await getById(params.row.cs);
-                setEditRow(res || null);
-                setEditOpen(true);
-              } catch (err) {
-                console.error("Fetch by ID failed:", err);
-              }
+              const res = await getById(row.cs);
+              setEditRow(res);
+              setEditOpen(true);
+              setAnchorEl(null);
             }}
           >
             Update
-          </Button>
-          <Button
-            size="small"
-            color="error"
-            onClick={async () => {
-              const confirmed = window.confirm(
-                `Are you sure you want to delete inventory with CS: ${params.row.cs}?`
-              );
-              if (!confirmed) return;
+          </MenuItem>
 
-              try {
-                await remove(params.row.cs);
-                alert("Inventory deleted!");
-                fetchData();
-              } catch (err) {
-                console.error("Delete failed:", err);
-              }
+          <MenuItem
+            sx={{ color: "red" }}
+            onClick={async () => {
+              if (!window.confirm(`Delete ${row.cs}?`)) return;
+              await remove(row.cs);
+              fetchData();
+              setAnchorEl(null);
             }}
           >
             Delete
-          </Button>
-        </>
-      ),
+          </MenuItem>
+        </Menu>
+      </>
+    );
+  };
+
+  // 🔥 COLUMNS
+  const columns = [
+    { field: "date", headerName: "Invoice Date", flex: 1, minWidth: 130, resizable: true },
+    { field: "posteddate", headerName: "Posted Date", flex: 1, minWidth: 130, resizable: true },
+    { field: "cs", headerName: "CS Number", flex: 0.8, minWidth: 120 },
+    { field: "vsp", headerName: "VSP", flex: 0.8, minWidth: 100 },
+    { field: "customer_name", headerName: "Customer Name", flex: 1.5, minWidth: 180 },
+    { field: "model", headerName: "Unit Model", flex: 1, minWidth: 130 },
+    { field: "color", headerName: "Color", flex: 0.8, minWidth: 100 },
+    { field: "year", headerName: "Year", flex: 0.6, minWidth: 90 },
+
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      minWidth: 120,
+    },
+
+    { field: "location", headerName: "Location", flex: 1, minWidth: 130 },
+
+    // ✅ ACTION COLUMN (ALWAYS VISIBLE)
+    {
+      field: "actions",
+      headerName: "",
+      width: 70,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => <ActionMenu row={params.row} />,
     },
   ];
 
-  const filteredRows = Array.isArray(rows)
-    ? rows.filter((row) =>
-        Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
-
   return (
-    <Paper sx={{ height: 555, width: "100%", p: 2 }}>
-      <TextField
-        fullWidth
-        label="Search inventory..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+    <Paper
+      sx={{
+        p: "clamp(8px, 1vw, 16px)",
+        display: "flex",
+        flexDirection: "column",
+        height: "85vh",
+      }}
+    >
+      {/* HEADER */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, gap: 2 }}>
+        <Typography sx={{ fontSize: "clamp(16px, 1.2vw, 22px)", fontWeight: "bold" }}>
+          Inventory Management
+        </Typography>
 
-      <div style={{ width: "100%", height: 450 }}>
+        <TextField
+          placeholder="Search..."
+          size="small"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ minWidth: "clamp(150px, 30%, 300px)" }}
+        />
+      </Box>
+
+      {/* 🔥 DATAGRID */}
+      <Box sx={{ flex: 1 }}>
         <DataGrid
           rows={filteredRows}
           columns={columns}
           getRowId={(row) => row.cs}
-          pageSizeOptions={[5, 10, 20]}
-          initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+
+          slots={{ toolbar: GridToolbar }}
+
+          pageSizeOptions={[5, 10, 20, 50]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 10 } },
+          }}
+
           disableRowSelectionOnClick
+
+          // ✅ ENABLE EXCEL-LIKE RESIZE
+          columnBuffer={5}
+          columnThreshold={3}
+
           sx={{
-            border: 1,
-            "& .MuiDataGrid-cell": { borderRight: "1px solid #e0e0e0" },
-            "& .MuiDataGrid-columnHeaders": { borderBottom: "2px solid #e0e0e0" },
-            "& .MuiDataGrid-row": { borderBottom: "1px solid #e0e0e0" },
+            fontSize: "clamp(11px, 0.9vw, 14px)",
+
+            "& .MuiDataGrid-columnHeaders": {
+              fontWeight: "bold",
+            },
+
+            "& .MuiDataGrid-cell": {
+              alignItems: "center",
+            },
+
+            // 👇 visual resize handle (better UX)
+            "& .MuiDataGrid-columnSeparator": {
+              cursor: "col-resize",
+            },
           }}
         />
-      </div>
-    <EditDialog
-      open={editOpen}
-      setOpen={setEditOpen}
-      row={editRow}
-      setRow={setEditRow}
-      onSave={fetchData}   // just pass fetchData directly
-    />
+      </Box>
+
+      {/* EDIT DIALOG */}
+      <EditDialog
+        open={editOpen}
+        setOpen={setEditOpen}
+        row={editRow}
+        setRow={setEditRow}
+        onSave={fetchData}
+      />
     </Paper>
   );
 }
