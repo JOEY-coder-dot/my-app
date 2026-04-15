@@ -57,7 +57,7 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
       if (row.customername) {
         await supabase
           .from("customers")
-          .update({ customername: row.customername })
+          .update({ customername: row.customername , mpname: row.mpname })
           .eq("vsp", row.vsp);
       }
 
@@ -188,7 +188,13 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
           value={row.vsp || ""}
           onChange={handleChange("vsp")}
         />
-
+        <TextField
+          label="MP Name"
+          fullWidth
+          margin="dense"
+          value={row.mpname || ""}
+          onChange={handleChange("mpname")}
+        />
         {/* ✅ Customer Name field */}
         <TextField
           label="Customer Name"
