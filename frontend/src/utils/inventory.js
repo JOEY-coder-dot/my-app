@@ -7,7 +7,7 @@ export async function getAll() {
     .from("inventory")
     .select(`
       *,
-      customers ( customername, vsp )
+      customers ( customername, vsp, mpname )
     `)
     .or("status.is.null,status.eq.,status.neq.Released"); 
     // ✅ include NULL, blank, and anything not Released
