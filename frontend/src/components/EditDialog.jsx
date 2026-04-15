@@ -37,16 +37,7 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
     try {
       // ✅ Update inventory fields
       const payload = {
-        date: row.date,
-        posteddate: row.posteddate,
-        model: row.model,
-        color: row.color,
-        year: row.year,
         location: row.location,
-        chassisnum: row.chassisnum,
-        enginenum: row.enginenum,
-        keynum: row.keynum,
-        weight: row.weight,
         status: row.status,
         date_tagged: row.date_tagged,
         vsp: row.vsp,
@@ -74,87 +65,12 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
       <DialogTitle>Edit Inventory</DialogTitle>
       <DialogContent>
         <TextField
-          label="Invoice Date"
-          type="date"
-          fullWidth
-          margin="dense"
-          value={row.date ? row.date.substring(0, 10) : ""}
-          onChange={handleChange("date")}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="Posted Date"
-          type="date"
-          fullWidth
-          margin="dense"
-          value={row.posteddate ? row.posteddate.substring(0, 10) : ""}
-          onChange={handleChange("posteddate")}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="CS Number"
-          fullWidth
-          margin="dense"
-          value={row.cs || ""}
-          InputProps={{ readOnly: true }}
-        />
-        <TextField
-          label="Unit Model"
-          fullWidth
-          margin="dense"
-          value={row.model || ""}
-          onChange={handleChange("model")}
-        />
-        <TextField
-          label="Color"
-          fullWidth
-          margin="dense"
-          value={row.color || ""}
-          onChange={handleChange("color")}
-        />
-        <TextField
-          label="Year Model"
-          fullWidth
-          margin="dense"
-          value={row.year || ""}
-          onChange={handleChange("year")}
-        />
-        <TextField
           label="Location"
           fullWidth
           margin="dense"
           value={row.location || ""}
           onChange={handleChange("location")}
         />
-        <TextField
-          label="Chassis No."
-          fullWidth
-          margin="dense"
-          value={row.chassisnum || ""}
-          onChange={handleChange("chassisnum")}
-        />
-        <TextField
-          label="Engine No."
-          fullWidth
-          margin="dense"
-          value={row.enginenum || ""}
-          onChange={handleChange("enginenum")}
-        />
-        <TextField
-          label="Key No."
-          fullWidth
-          margin="dense"
-          value={row.keynum || ""}
-          onChange={handleChange("keynum")}
-        />
-        <TextField
-          label="Weight"
-          fullWidth
-          margin="dense"
-          value={row.weight || ""}
-          onChange={handleChange("weight")}
-        />
-
         {/* ✅ Status dropdown */}
         <FormControl fullWidth margin="dense">
           <InputLabel>Status</InputLabel>
@@ -180,7 +96,6 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
             <MenuItem value="Transferred Out">TRANSFERRED OUT</MenuItem>
           </Select>
         </FormControl>
-
         <TextField
           label="VSP"
           fullWidth
@@ -203,7 +118,6 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
           value={row.customername || ""}
           onChange={handleChange("customername")}
         />
-
         <Button onClick={handleSave} variant="contained" sx={{ mt: 2 }}>
           Save
         </Button>
