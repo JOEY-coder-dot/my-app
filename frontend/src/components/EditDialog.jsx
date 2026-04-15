@@ -37,6 +37,7 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
     try {
       // ✅ Update inventory fields
       const payload = {
+        posteddate: row.posteddate,
         location: row.location,
         status: row.status,
         date_tagged: row.date_tagged,
@@ -64,6 +65,15 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
     <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
       <DialogTitle>Edit Inventory</DialogTitle>
       <DialogContent>
+        <TextField
+          label="Posted Date"
+          type="date"
+          fullWidth
+          margin="dense"
+          value={row.posteddate || ""}
+          onChange={handleChange("posteddate")}
+          InputLabelProps={{ shrink: true }} // ✅ ensures label stays above the date picker
+        />
         <TextField
           label="Location"
           fullWidth
@@ -118,6 +128,13 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
           value={row.customername || ""}
           onChange={handleChange("customername")}
         />
+        <Button
+          onClick={() => setOpen(false)}
+          variant="outlined"
+          sx={{ mt: 2, mr: 2 }}
+        >
+          Back
+        </Button>
         <Button onClick={handleSave} variant="contained" sx={{ mt: 2 }}>
           Save
         </Button>

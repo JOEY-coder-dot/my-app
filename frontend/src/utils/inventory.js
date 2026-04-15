@@ -14,17 +14,38 @@ export async function getAll() {
 
   if (error) throw error;
 
-  return data.map((item) => ({
-    ...item,
-    customer_name:
-      item.status === "Hold" || item.status === "Allocated"
-        ? item.customers?.customername || "—"
-        : "",
-    mpname:
-      item.status === "Hold" || item.status === "Allocated"
-        ? item.customers?.mpname || "—"
-        : "",
-  }));
+  return data.map((item) => {
+    // ✅ Compute aging
+    let aging = 0;
+
+    if (item.date) {
+      const invoiceDate = new Date(item.date);
+      const today = new Date();
+
+      // remove time for accurate day difference
+      invoiceDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - invoiceDate;
+      aging = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    return {
+      ...item,
+
+      customer_name:
+        item.status === "Hold" || item.status === "Allocated"
+          ? item.customers?.customername || "—"
+          : "",
+
+      mpname:
+        item.status === "Hold" || item.status === "Allocated"
+          ? item.customers?.mpname || "—"
+          : "",
+
+      aging, // ✅ real computed aging
+    };
+  });
 }
 
 export async function getById(cs) {
