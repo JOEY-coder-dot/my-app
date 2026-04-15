@@ -54,7 +54,7 @@ export default function EditDialog({ open, setOpen, row, setRow, onSave }) {
       await update(row.cs, payload);
 
       // ✅ Update customer name separately in customers table
-      if (row.customername) {
+      if (row.customername || row.mpname) {
         await supabase
           .from("customers")
           .update({ customername: row.customername , mpname: row.mpname })
