@@ -45,7 +45,7 @@ export async function getById(cs) {
       posteddate,
       date_tagged,
       vsp,
-      customers ( customername )
+      customers ( customername, mpname )
     `)
     .eq("cs", cs)
     .single();
@@ -54,6 +54,7 @@ export async function getById(cs) {
   return {
     ...data,
     customername: data.customers?.customername || "",
+    mpname: data.customers?.mpname || "",
   };
 }
 
