@@ -58,13 +58,6 @@ export default function Sidebar({ collapsed, session }) {
           <ListItemIcon><SettingsIcon /></ListItemIcon>
           {!collapsed && <ListItemText primary="Settings" />}
         </ListItemButton>
-
-        {session?.user?.user_metadata?.role === "admin" && (
-          <ListItemButton component={Link} to="/admin">
-            <ListItemIcon><AdminPanelSettingsIcon /></ListItemIcon>
-            {!collapsed && <ListItemText primary="Admin" />}
-          </ListItemButton>
-        )}
       </List>
     </Drawer>
   );

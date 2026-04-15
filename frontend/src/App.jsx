@@ -12,7 +12,6 @@ import Releases from "./pages/Releases";
 import Customer from "./pages/Customers";
 import Report from "./pages/Report";
 import Settings from "./pages/Settings";
-import Admin from "./pages/Admin";
 import { Box, CircularProgress } from "@mui/material";
 
 function PrivateRoute({ children, session }) {
@@ -87,18 +86,6 @@ export default function App() {
         <Route path="customer" element={<Customer />} />
         <Route path="report" element={<Report />} />
         <Route path="settings" element={<Settings />} />
-        <Route
-          path="admin"
-          element={
-            <PrivateRoute session={session}>
-              {session?.user?.user_metadata?.role === "admin" ? (
-                <Admin />
-              ) : (
-                <Navigate to="/home" replace />
-              )}
-            </PrivateRoute>
-          }
-        />
       </Route>
     </Routes>
   );

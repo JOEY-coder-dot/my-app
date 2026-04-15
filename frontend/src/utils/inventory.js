@@ -20,6 +20,10 @@ export async function getAll() {
       item.status === "Hold" || item.status === "Allocated"
         ? item.customers?.customername || "—"
         : "",
+    mpname:
+      item.status === "Hold" || item.status === "Allocated"
+        ? item.customers?.mpname || "—"
+        : "",
   }));
 }
 

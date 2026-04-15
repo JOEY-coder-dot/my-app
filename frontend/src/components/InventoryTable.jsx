@@ -93,6 +93,7 @@ export default function InventoryTable({ onViewDetails }) {
     { field: "posteddate", headerName: "Posted Date", flex: 1, minWidth: 130, resizable: true },
     { field: "cs", headerName: "CS Number", flex: 0.8, minWidth: 120 },
     { field: "vsp", headerName: "VSP", flex: 0.8, minWidth: 100 },
+    { field: "mpname", headerName: "MP Name", flex: 0.8, minWidth: 100 },
     { field: "customer_name", headerName: "Customer Name", flex: 1.5, minWidth: 180 },
     { field: "model", headerName: "Unit Model", flex: 1, minWidth: 130 },
     { field: "color", headerName: "Color", flex: 0.8, minWidth: 100 },
